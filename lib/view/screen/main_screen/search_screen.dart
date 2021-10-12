@@ -32,7 +32,7 @@ class _DetailsOrdersListState extends State<SearchScreen> {
     SystemChannels.textInput.invokeMethod('TextInput.hide');
 
     return Scaffold(
-      resizeToAvoidBottomPadding: false,
+      resizeToAvoidBottomInset: false,
       body: Background(
         back: true,
         notfi: true,
@@ -95,10 +95,13 @@ class _DetailsOrdersListState extends State<SearchScreen> {
                         .getPostApi(appGet.searchCodeController.value.text);
                     print(appGet.content01.value);
 
-                    await ApiServer.instance.getSearchProduct(appGet.content01.value);
+                    await ApiServer.instance
+                        .getSearchProduct(appGet.content01.value);
 
-                    appGet.noteController.value.text = appGet.searchList["note"] ?? "";
-                    appGet.searchList.isEmpty ||appGet.searchList['name'] == null
+                    appGet.noteController.value.text =
+                        appGet.searchList["note"] ?? "";
+                    appGet.searchList.isEmpty ||
+                            appGet.searchList['name'] == null
                         ? Container()
                         : Get.dialog(dailog());
                     appGet.searchCodeController.value.text = "";
@@ -389,7 +392,8 @@ class _DetailsOrdersListState extends State<SearchScreen> {
                               1,
                               appGet.noteController.value.text ?? "");
                           Get.back();
-                                  SystemChannels.textInput.invokeMethod('TextInput.hide');
+                          SystemChannels.textInput
+                              .invokeMethod('TextInput.hide');
 
                           setToast("Problem", color: Colors.red);
                         },

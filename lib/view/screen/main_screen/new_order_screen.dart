@@ -39,7 +39,6 @@ class _HomeScreenState extends State<NewOrderScreen> {
   @override
   void initState() {
     SystemChannels.textInput.invokeMethod('TextInput.hide');
-
     appGet.newOrderFocus.unfocus();
     appGet.idUserController.value.text = "";
     super.initState();
@@ -49,7 +48,6 @@ class _HomeScreenState extends State<NewOrderScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         resizeToAvoidBottomInset: false,
-        resizeToAvoidBottomPadding: false,
         body: Background(
           notfi: true,
           back: true,
@@ -556,38 +554,40 @@ class _HomeScreenState extends State<NewOrderScreen> {
                           ),
                         ],
                       ),
-             appGet.whereHousScreen.length==0?Container():   FlatButton(
-                    onPressed: () async {
-                      if (appGet.idUserController.value.text == "") {
-                        setToast("Kunden må velge", color: Colors.red);
-                      } else {
-                        if (appGet.listAddProduct.isEmpty) {
-                          setToast("Produkter må legges til",
-                              color: Colors.red);
-                        } else {
-                          print(appGet.whereHousScreen[0].toJson());
-                          await ApiServer.instance.getCreatOrder(
-                            userId: int.parse(
-                                appGet.idUserController.value.text.toString()),
-                            whereHous: appGet.whereHousScreen,
-                          );
+                appGet.whereHousScreen.length == 0
+                    ? Container()
+                    : FlatButton(
+                        onPressed: () async {
+                          if (appGet.idUserController.value.text == "") {
+                            setToast("Kunden må velge", color: Colors.red);
+                          } else {
+                            if (appGet.listAddProduct.isEmpty) {
+                              setToast("Produkter må legges til",
+                                  color: Colors.red);
+                            } else {
+                              print(appGet.whereHousScreen[0].toJson());
+                              await ApiServer.instance.getCreatOrder(
+                                userId: int.parse(appGet
+                                    .idUserController.value.text
+                                    .toString()),
+                                whereHous: appGet.whereHousScreen,
+                              );
                               appGet.userController.value.text = "";
-
-                        }
-                      }
-                    },
-                    child: Container(
-                      height: 30.h,
-                      width: 200.w,
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          color: Colors.green),
-                      child: Center(
-                          child: Text(
-                        "Ferdig",
-                        style: TextStyle(color: Colors.white, fontSize: 20),
-                      )),
-                    )),
+                            }
+                          }
+                        },
+                        child: Container(
+                          height: 30.h,
+                          width: 200.w,
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              color: Colors.green),
+                          child: Center(
+                              child: Text(
+                            "Ferdig",
+                            style: TextStyle(color: Colors.white, fontSize: 20),
+                          )),
+                        )),
               ],
             ));
           }),

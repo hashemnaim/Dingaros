@@ -4,6 +4,7 @@ import 'package:dinengros/Controller/helper/sp_helper.dart';
 import 'package:dinengros/value/const.dart';
 import 'package:dinengros/view/screen/main_screen/home_screen.dart';
 import 'package:dinengros/view/screen/main_screen/new_order_screen.dart';
+import 'package:dinengros/view/screen/main_screen/orders_screen.dart';
 import 'package:dio/dio.dart';
 import 'package:dinengros/Controller/getxController/getx.dart';
 import 'package:flutter/services.dart';
@@ -23,14 +24,16 @@ class ApiServer {
     }
   }
 
-  String baseUrl = "https://mecm.org.uk/api/";
+  String baseUrl = "https://dinengros.no/api/";
   AppGet appGet = getx.Get.find();
   getApi() async {
+    await getOrders();
     getAllProduct();
     getUnits();
     getCheckProducts();
     getAllUser();
-    await getOrders();
+    getScanStatus();
+    getShowVersion();
   }
 
   Future<Map> signInServer({String email, String password}) async {
@@ -48,13 +51,12 @@ class ApiServer {
         await SPHelper.spHelper
             .setText("name", response.data['data']['first_name']);
         appGet.token.value = response.data['data']['auth_token'];
-        await ApiServer.instance.getApi();
-        appGet.pr.hide();
+        ApiServer.instance.getApi();
         getx.Get.offAll(() => HomeScreen());
       }
       return response.data[0];
     } catch (e) {
-      appGet.pr.hide();
+      // appGet.pr.hide();
 
       return null;
     }
@@ -176,14 +178,15 @@ class ApiServer {
     try {
       Response response = await dio.post("$baseUrl" + "orders",
           data: {'auth_token': appGet.token.value});
+      print(response.data);
       appGet.lodaing.value = false;
       appGet.tokenBool.value = true;
-      print(response.data);
-      appGet.listOrders.assignAll(response.data);
+      appGet.listOrders.value.assignAll(response.data);
+      // getx.Get.off(() => OrdersScreen());
+
       return response.data;
     } catch (e) {
       appGet.tokenBool.value = false;
-
       appGet.lodaing.value = false;
       return null;
     }
@@ -261,6 +264,61 @@ class ApiServer {
     }
   }
 
+////////////////////////////////////////////////////////////////
+  Future<Map> getShowVersion() async {
+    dio = initApi();
+    try {
+      Response response = await dio.post(
+        "$baseUrl" + "app-version",
+      );
+      appGet.mapVersion.assignAll(response.data);
+
+      print(response.data);
+      return response.data;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  ////////////////////////////////////////////////////////////////
+  Future<Map> getScanStatus() async {
+    dio = initApi();
+    // try {
+    Response response = await dio.post("$baseUrl" + "scan-status", data: {
+      'auth_token': appGet.token.value,
+    });
+    appGet.mapStatus.assignAll(response.data);
+
+    print(response.data);
+    return response.data;
+    // } catch (e) {
+    //   return null;
+    // }
+  }
+
+  ////////////////////////////////////////////////////////////////
+  Future<Map> getUpdateScanStatus(int id, int status) async {
+    dio = initApi();
+    // try {
+    print("statusstatusstatusstatusstatus");
+    print(status);
+    print(id);
+    print("statusstatusstatusstatusstatus");
+
+    Response response =
+        await dio.post("$baseUrl" + "update-scan-status", data: {
+      'auth_token': appGet.token.value,
+      'id': id,
+      'scan_status': status,
+    });
+    // appGet.mapStatus.assignAll(response.data);
+
+    return response.data;
+    // } catch (e) {
+    //   return null;
+    // }
+  }
+
   ////////////////////////////////////////////////////////////////
   Future<List> getAllUser() async {
     dio = initApi();
@@ -321,9 +379,7 @@ class ApiServer {
 ////////////////////////////////////////////////////////////////
   Future<Map> getUpdateCheck(int productId, int status, String note) async {
     dio = initApi();
-    print(productId);
-    print(status);
-    print(note);
+
     try {
       Response response = await dio.post("$baseUrl" + "update-check", data: {
         'auth_token': appGet.token.value,
@@ -334,7 +390,7 @@ class ApiServer {
       print(response.data);
       appGet.noteController.value.text = "";
       appGet.searchCodeController.value.text = "";
-              SystemChannels.textInput.invokeMethod('TextInput.hide');
+      SystemChannels.textInput.invokeMethod('TextInput.hide');
 
       await getCheckProducts();
 
@@ -353,7 +409,7 @@ class ApiServer {
       Response response =
           await dio.post("$baseUrl" + "update-order-status", data: {
         'auth_token': appGet.token.value,
-        'status_id': 4,
+        'status_id': 3,
         'id': id,
       });
       await getOrders();
@@ -434,11 +490,7 @@ class ApiServer {
     List<WhereHouseModel> whereHous,
   }) async {
     dio = initApi();
-    // String jsonTags = jsonEncode(product);
     String jsonhous = jsonEncode(whereHous);
-
-    // print(userId);
-    print(jsonhous);
 
     try {
       FormData data = FormData.fromMap({
@@ -450,7 +502,6 @@ class ApiServer {
       });
       Response response =
           await dio.post("$baseUrl" + "create-order", data: data);
-      print(response.data);
 
       appGet.nameProduct.value.text = "";
       appGet.userController.value.text = "";

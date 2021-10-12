@@ -1,6 +1,7 @@
 import 'package:dinengros/Controller/api/api.dart';
 import 'package:dinengros/Controller/api/api.dart';
 import 'package:dinengros/Controller/helper/sp_helper.dart';
+import 'package:dinengros/view/screen/main_screen/orders_screen.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
@@ -33,14 +34,13 @@ class NotificationHelper {
     firebaseMessaging.configure(
       onMessage: (Map<String, dynamic> message) async {
         this.message = message;
-        print('onMessage');
 
-        showNotification(
-          message['notification']['title'],
-          message['notification']['body'],
-        );
+        // showNotification(
+        //   message['notification']['title'],
+        //   message['notification']['body'],
+        // );
         appGet.playAlert();
-        ApiServer.instance.getOrders();
+        await ApiServer.instance.getOrders();
       },
       // onBackgroundMessage: myBackgroundMessageHandler,
       onLaunch: (Map<String, dynamic> message) async {

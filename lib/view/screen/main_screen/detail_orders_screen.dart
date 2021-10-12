@@ -1,8 +1,8 @@
-import 'package:audioplayers/audioplayers.dart';
 import 'package:dinengros/Controller/api/api.dart';
 import 'package:dinengros/value/colors.dart';
 import 'package:dinengros/value/const.dart';
 import 'package:dinengros/view/widget/background.dart';
+import 'package:dinengros/view/widget/customTextField.dart';
 import 'package:dinengros/view/widget/isload.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -32,25 +32,34 @@ class _DetailsOrdersListState extends State<DetailsOrdersList> {
   int unitId;
   String name;
   List listselect = [];
+  TextEditingController textEditingController = TextEditingController();
   @override
   void initState() {
     appGet.detailFocus.unfocus();
     SystemChannels.textInput.invokeMethod('TextInput.hide');
-
+    stautsList();
     super.initState();
   }
 
   check() {
-    List list = appGet.listDetailsOrders.value[0]["orderDetails"]
+    List list = appGet.listDetailsOrders[0]["orderDetails"]
         .where((element) => element["is_sacn_barcode"] == 0)
         .toList();
 
     int x = list.length == 0
         ? 0
-        : list.length != appGet.listDetailsOrders.value[0]["orderDetails"]
+        : list.length != appGet.listDetailsOrders[0]["orderDetails"]
             ? 1
             : 2;
     return x;
+  }
+
+  List listMap = [];
+  stautsList() {
+    List list = appGet.mapStatus["data"].sublist(1);
+    listMap = list.where((e) => e["active"] == 1).toList();
+    setState(() {});
+    // return list.where((e) => e["active"] == 1).toList();
   }
 
   whereProduct(List list, List list2) async {
@@ -67,25 +76,206 @@ class _DetailsOrdersListState extends State<DetailsOrdersList> {
           appGet.stkCountController.value.text = "";
           appGet.qtyindex.value = 0;
           appGet.stkCountController.value.text = qty.toString();
+          if (unitId == 3) {
+            Get.dialog(AlertDialog(
+              title: Column(
+                children: [
+                  Text(
+                    "$qty",
+                    style: TextStyle(fontSize: 20),
+                  ),
+                  SizedBox(
+                    height: 8,
+                  ),
+                  Row(
+                    children: [
+                      FlatButton(
+                          color: Colors.green,
+                          onPressed: () async {
+                            if (appGet.stkCountController.value.text ==
+                                qty.toString()) {
+                              await ApiServer.instance
+                                  .getUpdateProductBarcode(list[0]["id"]);
+                              await ApiServer.instance.getUpdateScanStatus(
+                                  list[0]["id"],
+                                  appGet.mapStatus["data"][0]["id"]);
+                              appGet.save(
+                                  qty,
+                                  appGet.barCodeController.value.text,
+                                  list[0]["id"],
+                                  appGet.listDetailsOrders[0]["id"],
+                                  selectedProductID,
+                                  unitId,
+                                  name);
 
-          if (unitId == 1 || unitId == 3) {
+                              appGet.barCodeController.value.text = "";
+
+                              await ApiServer.instance.getDetailsOrders(
+                                  appGet.listDetailsOrders[0]["id"]);
+
+                              Navigator.pop(context);
+                            } else {
+                              setToast("Feil mengde", color: Colors.red);
+                            }
+                          },
+                          child: Text(
+                            "Done",
+                            style: TextStyle(color: Colors.white, fontSize: 18),
+                          )),
+                      SizedBox(
+                        width: 10,
+                      ),
+                      FlatButton(
+                          color: Colors.green,
+                          onPressed: () async {
+                            if (appGet.stkCountController.value.text ==
+                                qty.toString()) {
+                              await ApiServer.instance.getSubDetailsProduct(
+                                  list[0]["id"],
+                                  appGet.listDetailsOrders[0]['id'].toString());
+                              await ApiServer.instance.getSubDetailProductsOut(
+                                  list[0]["id"],
+                                  appGet.listDetailsOrders[0]['id'].toString());
+
+                              Future.delayed(Duration(milliseconds: 500), () {
+                                Get.to(() => KelloList(
+                                    list: list,
+                                    idDetail: list[0]["id"],
+                                    idOrder: appGet.listDetailsOrders[0]["id"],
+                                    idProduct: list[0]["product_id"]));
+                              });
+                              Navigator.pop(context);
+                            } else {
+                              setToast("Feil mengde", color: Colors.red);
+                            }
+                          },
+                          child: Text(
+                            "pillekontroll",
+                            style: TextStyle(color: Colors.white, fontSize: 18),
+                          )),
+                    ],
+                  )
+                ],
+              ),
+            ));
+          } else if (unitId == 1) {
             appGet.barCodeController.value.text = "";
-
-            // appGet.subDetails.value = [];
-            // appGet.subDetailsOut.value = [];
-
-            print(list[0]["id"]);
-            await ApiServer.instance.getSubDetailsProduct(list[0]["id"],
-                appGet.listDetailsOrders.value[0]['id'].toString());
-            await ApiServer.instance.getSubDetailProductsOut(list[0]["id"],
-                appGet.listDetailsOrders.value[0]['id'].toString());
+            // await ApiServer.instance.getSubDetailsProduct(
+            //     list[0]["id"], appGet.listDetailsOrders[0]['id'].toString());
+            // await ApiServer.instance.getSubDetailProductsOut(
+            //     list[0]["id"], appGet.listDetailsOrders[0]['id'].toString());
 
             Future.delayed(Duration(milliseconds: 500), () {
-              Get.to(() => KelloList(
-                  list: list,
-                  idDetail: list[0]["id"],
-                  idOrder: appGet.listDetailsOrders.value[0]["id"],
-                  idProduct: list[0]["product_id"]));
+              Get.dialog(AlertDialog(
+                title: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          flex: 1,
+                          child: Text(
+                            "$qty",
+                            style: TextStyle(fontSize: 30),
+                          ),
+                        ),
+                        // Spacer(),
+                        Expanded(
+                          flex: 3,
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 30),
+                            child: Container(
+                              height: 100,
+                              width: 200,
+                              child: CustomTextFormField(
+                                hintText: "Total Kg",
+                                textEditingController: textEditingController,
+                              ),
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
+                    SizedBox(
+                      height: 8,
+                    ),
+                    Row(
+                      children: [
+                        FlatButton(
+                            color: Colors.green,
+                            onPressed: () async {
+                              if (appGet.stkCountController.value.text ==
+                                  qty.toString()) {
+                                await ApiServer.instance
+                                    .getUpdateProductBarcode(list[0]["id"]);
+                                await ApiServer.instance.getUpdateScanStatus(
+                                    list[0]["id"],
+                                    appGet.mapStatus["data"][0]["id"]);
+                                appGet.save(
+                                    qty,
+                                    appGet.barCodeController.value.text,
+                                    list[0]["id"],
+                                    appGet.listDetailsOrders[0]["id"],
+                                    selectedProductID,
+                                    unitId,
+                                    name);
+
+                                appGet.barCodeController.value.text = "";
+
+                                await ApiServer.instance.getDetailsOrders(
+                                    appGet.listDetailsOrders[0]["id"]);
+
+                                Navigator.pop(context);
+                              } else {
+                                setToast("Feil mengde", color: Colors.red);
+                              }
+                            },
+                            child: Text(
+                              "Done",
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 18),
+                            )),
+                        SizedBox(
+                          width: 10,
+                        ),
+                        FlatButton(
+                            color: Colors.green,
+                            onPressed: () async {
+                              if (appGet.stkCountController.value.text ==
+                                  qty.toString()) {
+                                await ApiServer.instance.getSubDetailsProduct(
+                                    list[0]["id"],
+                                    appGet.listDetailsOrders[0]['id']
+                                        .toString());
+                                await ApiServer.instance
+                                    .getSubDetailProductsOut(
+                                        list[0]["id"],
+                                        appGet.listDetailsOrders[0]['id']
+                                            .toString());
+
+                                Future.delayed(Duration(milliseconds: 500), () {
+                                  Get.to(() => KelloList(
+                                      list: list,
+                                      idDetail: list[0]["id"],
+                                      idOrder: appGet.listDetailsOrders[0]
+                                          ["id"],
+                                      idProduct: list[0]["product_id"]));
+                                });
+                                Navigator.pop(context);
+                              } else {
+                                setToast("Feil mengde", color: Colors.red);
+                              }
+                            },
+                            child: Text(
+                              "pillekontroll",
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 18),
+                            )),
+                      ],
+                    )
+                  ],
+                ),
+              ));
             });
           } else if (unitId == 2) {
             Get.dialog(AlertDialog(
@@ -105,9 +295,10 @@ class _DetailsOrdersListState extends State<DetailsOrdersList> {
                             qty.toString()) {
                           await ApiServer.instance
                               .getUpdateProductBarcode(list[0]["id"]);
-
+                          await ApiServer.instance.getUpdateScanStatus(
+                              list[0]["id"], appGet.mapStatus["data"][0]["id"]);
                           appGet.save(
-                              1,
+                              qty,
                               appGet.barCodeController.value.text,
                               list[0]["id"],
                               appGet.listDetailsOrders[0]["id"],
@@ -116,9 +307,12 @@ class _DetailsOrdersListState extends State<DetailsOrdersList> {
                               name);
 
                           appGet.barCodeController.value.text = "";
-                          ApiServer.instance.getDetailsOrders(
+
+                          await ApiServer.instance.getDetailsOrders(
                               appGet.listDetailsOrders[0]["id"]);
                           Navigator.pop(context);
+
+                          // Navigator.pop(context);
                         } else {
                           setToast("Feil mengde", color: Colors.red);
                         }
@@ -134,6 +328,9 @@ class _DetailsOrdersListState extends State<DetailsOrdersList> {
         } else {
           await ApiServer.instance
               .getReaderBarcode(appGet.barCodeController.value.text);
+          await ApiServer.instance.getUpdateProductBarcode(list[0]["id"]);
+          await ApiServer.instance.getUpdateScanStatus(
+              list[0]["id"], appGet.mapStatus["data"][0]["id"]);
           appGet.save(
               1,
               appGet.barCodeController.value.text,
@@ -142,8 +339,8 @@ class _DetailsOrdersListState extends State<DetailsOrdersList> {
               selectedProductID,
               unitId,
               name);
-          await ApiServer.instance.getUpdateProductBarcode(list[0]["id"]);
-          ApiServer.instance
+
+          await ApiServer.instance
               .getDetailsOrders(appGet.listDetailsOrders[0]["id"]);
 
           appGet.barCodeController.value.text = "";
@@ -175,10 +372,13 @@ class _DetailsOrdersListState extends State<DetailsOrdersList> {
                 child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
+                SizedBox(
+                  height: 20.h,
+                ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                   child: Container(
-                    height: 30.h,
+                    height: 25.h,
                     width: 300.w,
                     child: TextFormField(
                       controller: appGet.barCodeController.value,
@@ -202,11 +402,12 @@ class _DetailsOrdersListState extends State<DetailsOrdersList> {
                         fillColor: Colors.white,
                         suffixIcon: IconButton(
                           icon: CircleAvatar(
+                              radius: 10.r,
                               backgroundColor: Colors.grey,
                               child: Icon(
                                 Icons.close,
                                 color: Colors.white,
-                                size: 16,
+                                size: 12,
                               )),
                           onPressed: () {
                             appGet.barCodeController.value.text = '';
@@ -277,60 +478,169 @@ class _DetailsOrdersListState extends State<DetailsOrdersList> {
                               appGet.listDetailsOrders[0]['id']);
                         },
                         child: Container(
-                          height: Get.height / 1.35.h,
+                          height: Get.height / 1.67.h,
                           child: ListView.separated(
                             separatorBuilder: (_, inde) => SizedBox(height: 1),
                             padding: EdgeInsets.zero,
                             itemCount: appGet
                                 .listDetailsOrders[0]["orderDetails"].length,
-                            itemBuilder: (context, index2) => Padding(
-                              padding: const EdgeInsets.all(4.0),
-                              child: Container(
-                                height: 70,
-                                decoration: BoxDecoration(
-                                  color: appGet.listDetailsOrders[0]
-                                                  ["orderDetails"][index2]
-                                              ['is_sacn_barcode'] ==
-                                          1
-                                      ? AppColors.doneColor
-                                      : AppColors.newColor,
-                                  borderRadius: BorderRadius.all(
-                                    Radius.circular(4),
+                            itemBuilder: (context, index2) => InkWell(
+                              onTap: () {
+                                appGet.listDetailsOrders[0]["orderDetails"]
+                                            [index2]["is_sacn_barcode"] ==
+                                        1
+                                    ? setToast("Varen er sjekket",
+                                        color: Colors.red)
+                                    : Get.dialog(AlertDialog(
+                                        title: Column(children: [
+                                          Text(
+                                            "Produktmigrasjon",
+                                            style: TextStyle(fontSize: 20),
+                                          ),
+                                          SizedBox(
+                                            height: 15.h,
+                                          ),
+                                          Wrap(
+                                              direction: Axis.vertical,
+                                              children: List.generate(
+                                                listMap.length,
+                                                (indexStatus) => Padding(
+                                                  padding:
+                                                      const EdgeInsets.all(8.0),
+                                                  child: InkWell(
+                                                    onTap: () async {
+                                                      await ApiServer.instance
+                                                          .getUpdateProductBarcode(
+                                                              appGet.listDetailsOrders[
+                                                                          0][
+                                                                      "orderDetails"]
+                                                                  [
+                                                                  index2]['id']);
+
+                                                      await ApiServer.instance
+                                                          .getUpdateScanStatus(
+                                                              appGet.listDetailsOrders[
+                                                                          0][
+                                                                      "orderDetails"]
+                                                                  [
+                                                                  index2]['id'],
+                                                              listMap[indexStatus]
+                                                                  ["id"]);
+
+                                                      await ApiServer.instance
+                                                          .getDetailsOrders(
+                                                              appGet.listDetailsOrders[
+                                                                  0]["id"]);
+                                                      Get.back();
+                                                    },
+                                                    child: Container(
+                                                        width: 100.w,
+                                                        height: 20.h,
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(5),
+                                                          color: Colors.black54,
+                                                        ),
+                                                        child: Center(
+                                                          child: Text(
+                                                            listMap[indexStatus]
+                                                                ["name"],
+                                                            style: TextStyle(
+                                                                color: Colors
+                                                                    .white,
+                                                                fontSize: 9.sp),
+                                                          ),
+                                                        )),
+                                                  ),
+                                                ),
+                                                // SizedBox(
+                                                //   width: 8,
+                                                // ),
+                                                // InkWell(
+                                                //   onTap: () async {
+                                                //     await ApiServer.instance
+                                                //         .getUpdateProductBarcode(
+                                                //             appGet.listDetailsOrders[
+                                                //                         0]
+                                                //                     ["orderDetails"]
+                                                //                 [index2]['id']);
+                                                //     await ApiServer.instance
+                                                //         .getUpdateScanStatus(
+                                                //             appGet.listDetailsOrders[
+                                                //                         0]
+                                                //                     ["orderDetails"]
+                                                //                 [index2]['id'],
+                                                //             appGet.mapStatus["data"]
+                                                //                 [2]["id"]);
+                                                //     ApiServer.instance
+                                                //         .getDetailsOrders(appGet
+                                                //                 .listDetailsOrders[
+                                                //             0]["id"]);
+                                                //     setState(() {});
+                                                //     Get.back();
+                                                //   },
+                                                //   child: Container(
+                                                //       decoration: BoxDecoration(
+                                                //         borderRadius:
+                                                //             BorderRadius.circular(
+                                                //                 5),
+                                                //         color: Colors.black54,
+                                                //       ),
+                                                //       child: Padding(
+                                                //         padding: const EdgeInsets
+                                                //                 .symmetric(
+                                                //             horizontal: 6,
+                                                //             vertical: 8),
+                                                //         child: Text(
+                                                //           appGet.mapStatus["data"]
+                                                //               [2]["name"],
+                                                //           style: TextStyle(
+                                                //               color: Colors.white,
+                                                //               fontSize: 9.sp),
+                                                //         ),
+                                                //       )),
+                                                // ),
+                                              ))
+                                        ]),
+                                      ));
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.all(4.0),
+                                child: Container(
+                                  height: 70,
+                                  decoration: BoxDecoration(
+                                    color: appGet.listDetailsOrders[0]
+                                                    ["orderDetails"][index2]
+                                                ['is_sacn_barcode'] ==
+                                            1
+                                        ? appGet.listDetailsOrders[0]
+                                                        ["orderDetails"][index2]
+                                                    ['scan_status'] !=
+                                                1
+                                            ? Colors.grey
+                                            : AppColors.doneColor
+                                        : AppColors.newColor,
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(4),
+                                    ),
                                   ),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(4.0),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        "${appGet.listDetailsOrders[0]["orderDetails"][index2]['qty']}" +
-                                                " X" ??
-                                            "",
-                                        style: TextStyle(
-                                          fontSize: 22,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.black,
-                                          decoration: appGet.listDetailsOrders[
-                                                              0]["orderDetails"]
-                                                          [index2]
-                                                      ['is_sacn_barcode'] ==
-                                                  1
-                                              ? TextDecoration.lineThrough
-                                              : null,
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        width: 5,
-                                      ),
-                                      Expanded(
-                                        child: Text(
-                                          "${appGet.listDetailsOrders[0]["orderDetails"][index2]['product_name']}" ??
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(4.0),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          "${appGet.listDetailsOrders[0]["orderDetails"][index2]['qty']}" +
+                                                  " X" ??
                                               "",
                                           style: TextStyle(
-                                            fontSize: 18,
+                                            fontSize: 22,
+                                            fontWeight: FontWeight.bold,
                                             color: Colors.black,
                                             decoration: appGet.listDetailsOrders[
                                                                     0]
@@ -342,26 +652,67 @@ class _DetailsOrdersListState extends State<DetailsOrdersList> {
                                                 : null,
                                           ),
                                         ),
-                                      ),
-                                      SizedBox(
-                                        width: 4,
-                                      ),
-                                      Text(
-                                        "${appGet.listDetailsOrders[0]["orderDetails"][index2]['unit_name']}",
-                                        style: TextStyle(
-                                          fontSize: 22,
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xffA9AAAA),
-                                          decoration: appGet.listDetailsOrders[
-                                                              0]["orderDetails"]
-                                                          [index2]
-                                                      ['is_sacn_barcode'] ==
-                                                  1
-                                              ? TextDecoration.lineThrough
-                                              : null,
+                                        SizedBox(
+                                          width: 5,
                                         ),
-                                      ),
-                                    ],
+                                        Expanded(
+                                          child: Text(
+                                            "${appGet.listDetailsOrders[0]["orderDetails"][index2]['product_name']}" ??
+                                                "",
+                                            style: TextStyle(
+                                              fontSize: 18,
+                                              color: Colors.black,
+                                              decoration: appGet.listDetailsOrders[
+                                                                      0][
+                                                                  "orderDetails"]
+                                                              [index2]
+                                                          ['is_sacn_barcode'] ==
+                                                      1
+                                                  ? TextDecoration.lineThrough
+                                                  : null,
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(
+                                          width: 4,
+                                        ),
+                                        Text(
+                                          "${appGet.listDetailsOrders[0]["orderDetails"][index2]['sum_kg'] == "0" ? "" : appGet.listDetailsOrders[0]["orderDetails"][index2]['sum_kg'] ?? ""}",
+                                          style: TextStyle(
+                                            fontSize: 22,
+                                            fontWeight: FontWeight.bold,
+                                            color: Color(0xffA9AAAA),
+                                            decoration: appGet.listDetailsOrders[
+                                                                    0]
+                                                                ["orderDetails"]
+                                                            [index2]
+                                                        ['is_sacn_barcode'] ==
+                                                    1
+                                                ? TextDecoration.lineThrough
+                                                : null,
+                                          ),
+                                        ),
+                                        SizedBox(
+                                          width: 4,
+                                        ),
+                                        Text(
+                                          "${appGet.listDetailsOrders[0]["orderDetails"][index2]['unit_name']}",
+                                          style: TextStyle(
+                                            fontSize: 22,
+                                            fontWeight: FontWeight.bold,
+                                            color: Color(0xffA9AAAA),
+                                            decoration: appGet.listDetailsOrders[
+                                                                    0]
+                                                                ["orderDetails"]
+                                                            [index2]
+                                                        ['is_sacn_barcode'] ==
+                                                    1
+                                                ? TextDecoration.lineThrough
+                                                : null,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),

@@ -1,7 +1,5 @@
 import 'dart:io';
 
-import 'package:device_preview/device_preview.dart';
-// import 'package:dinengros/Controller/api/api.dart';
 import 'package:dinengros/Controller/getxController/getx.dart';
 
 import 'package:dinengros/view/screen/splash.dart';
@@ -36,9 +34,9 @@ void main() async {
 
   runApp(
     // DevicePreview(
-      // enabled: true,
-      // builder: (context) =>
-       MyApp(),
+    // enabled: true,
+    // builder: (context) =>
+    MyApp(),
     // ),
   );
 }

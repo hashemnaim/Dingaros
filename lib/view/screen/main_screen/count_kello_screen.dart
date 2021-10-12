@@ -211,7 +211,7 @@ class _DetailsOrdersListState extends State<KelloList> {
               ),
               appGet.subDetailsOut.length != 0
                   ? Container(
-                      height: Get.height / 1.25.h,
+                      height: Get.height / 1.9.h,
                       child: ListView.separated(
                         separatorBuilder: (_, index2) => SizedBox(height: 2),
                         itemCount: appGet.subDetailsOut.length,
@@ -262,57 +262,69 @@ class _DetailsOrdersListState extends State<KelloList> {
                                       ),
                                       // Spacer(),
 
-                                appGet.subDetailsOut[index2]
-                                                    ['batch_num']==null||appGet.subDetailsOut[index2]
-                                                    ['batch_num']==""?Container():          Column(
-                                        children: [
-                                          Text(
-                                            "Batch / S.N",
-                                            style: TextStyle(
-                                                fontSize: 14,
-                                                color: Colors.black),
-                                          ),
-                                          Text(
-                                            appGet.subDetailsOut[index2]
-                                                    ['batch_num'] ??
-                                                "",
-                                        
-                                            style: TextStyle(
-                                                fontSize: 14,
-                                                color: Colors.black),
-                                          ),
-                                        ],
-                                      ),
-                                      Spacer(),
-                              appGet.subDetailsOut[index2]["expiration_date"]==null&&  appGet.subDetailsOut[index2]["production_date"]==null?Container():       Column(
-                                        children: [
-                                          Text(
+                                      appGet.subDetailsOut[index2]
+                                                      ['batch_num'] ==
+                                                  null ||
                                               appGet.subDetailsOut[index2]
-                                                        ["expiration_date"] ==
-                                                    null
-                                                ? "P-Dato"
-                                                : "E-Dato"  ,
-                                            style: TextStyle(
-                                                fontSize: 14,
-                                                color: Colors.black),
-                                          ),
-                                          Text(
-                                            appGet.subDetailsOut[index2]
-                                                        ["expiration_date"] ==
-                                                    null
-                                                ? appGet.subDetailsOut[index2]
-                                                        ["production_date"] ??
-                                                    ""
-                                                : appGet.subDetailsOut[index2]
-                                                        ["expiration_date"] ??
-                                                    "",
-                                     
-                                            style: TextStyle(
-                                                fontSize: 14,
-                                                color: Colors.black),
-                                          ),
-                                        ],
-                                      ),
+                                                      ['batch_num'] ==
+                                                  ""
+                                          ? Container()
+                                          : Column(
+                                              children: [
+                                                Text(
+                                                  "Batch / S.N",
+                                                  style: TextStyle(
+                                                      fontSize: 14,
+                                                      color: Colors.black),
+                                                ),
+                                                Text(
+                                                  appGet.subDetailsOut[index2]
+                                                          ['batch_num'] ??
+                                                      "",
+                                                  style: TextStyle(
+                                                      fontSize: 14,
+                                                      color: Colors.black),
+                                                ),
+                                              ],
+                                            ),
+                                      Spacer(),
+                                      appGet.subDetailsOut[index2]
+                                                      ["expiration_date"] ==
+                                                  null &&
+                                              appGet.subDetailsOut[index2]
+                                                      ["production_date"] ==
+                                                  null
+                                          ? Container()
+                                          : Column(
+                                              children: [
+                                                Text(
+                                                  appGet.subDetailsOut[index2][
+                                                              "expiration_date"] ==
+                                                          null
+                                                      ? "P-Dato"
+                                                      : "E-Dato",
+                                                  style: TextStyle(
+                                                      fontSize: 14,
+                                                      color: Colors.black),
+                                                ),
+                                                Text(
+                                                  appGet.subDetailsOut[index2][
+                                                              "expiration_date"] ==
+                                                          null
+                                                      ? appGet.subDetailsOut[
+                                                                  index2][
+                                                              "production_date"] ??
+                                                          ""
+                                                      : appGet.subDetailsOut[
+                                                                  index2][
+                                                              "expiration_date"] ??
+                                                          "",
+                                                  style: TextStyle(
+                                                      fontSize: 14,
+                                                      color: Colors.black),
+                                                ),
+                                              ],
+                                            ),
                                       Spacer(),
 
                                       unitId == 1
@@ -366,7 +378,7 @@ class _DetailsOrdersListState extends State<KelloList> {
                   ? Container()
                   : FlatButton(
                       onPressed: appGet.subDetailsOut.length.toString() !=
-                                    appGet.subDetailsOut[0]['stk_count']
+                              appGet.subDetailsOut[0]['stk_count']
                           ? null
                           : () async {
                               await ApiServer.instance.getUpdateProductBarcode(
@@ -383,7 +395,6 @@ class _DetailsOrdersListState extends State<KelloList> {
                             borderRadius: BorderRadius.circular(10),
                             color: appGet.subDetailsOut.length.toString() ==
                                     appGet.subDetailsOut[0]['stk_count']
-                             
                                 ? Colors.green
                                 : Colors.grey),
                         child: Center(
@@ -455,6 +466,8 @@ class _DetailsOrdersListState extends State<KelloList> {
                       await ApiServer.instance.getSubDetailProductsOut(
                           widget.idDetail, widget.idOrder.toString());
                       setListWeight();
+                      await ApiServer.instance
+                          .getUpdateScanStatus(widget.idProduct, 1);
                       Navigator.pop(context);
                       SystemChannels.textInput.invokeMethod('TextInput.hide');
 

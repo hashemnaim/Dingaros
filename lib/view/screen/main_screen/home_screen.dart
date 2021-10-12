@@ -15,7 +15,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'input_order_screen.dart';
 import 'new_order_screen.dart';
 import 'orders_screen.dart';
-import 'widget/floating_widget.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -44,8 +43,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     GestureDetector(
                         onTap: () {
                           appGet.clear();
-                          Get.to(() =>
-                        InputOrderScreen());},
+                          Get.to(() => InputOrderScreen());
+                        },
                         child: box("import-1", "Vare inn", true)),
                   ],
                 ),
@@ -67,8 +66,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   height: 20,
                 ),
                 FlatButton(
-                    onPressed: ()async {
-                    await  ApiServer.instance.getLogout();
+                    onPressed: () async {
+                      await ApiServer.instance.getLogout();
                       SPHelper.spHelper.setToken(null);
                       Get.offAll(() => SignInScreen());
                     },

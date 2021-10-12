@@ -73,8 +73,11 @@ class AppGet extends GetxController {
   RxList productList = List().obs;
   RxList oList = List().obs;
   RxInt currentSelectedTab = 0.obs;
+  List<Customer> list1 = [];
 
   Map map = {}.obs;
+  RxMap mapVersion = Map().obs;
+  RxMap mapStatus = Map().obs;
   RxBool stop = false.obs;
   final FocusNode detailFocus = FocusNode();
   final FocusNode userOrderFocus = FocusNode();
@@ -111,8 +114,8 @@ class AppGet extends GetxController {
 
   String name;
   getPostApi(String code) async {
-    groupApi.value="";
-        SystemChannels.textInput.invokeMethod('TextInput.hide');
+    groupApi.value = "";
+    SystemChannels.textInput.invokeMethod('TextInput.hide');
 
     await ApiServer.instance.getReaderBarcode(code).then((value) => {
           if (value['type'] == "A")
@@ -125,23 +128,23 @@ class AppGet extends GetxController {
           if (value['list'] != null)
             {
               map = value['list'],
+              print(map),
+              // map.forEach((k, v) => list1.add(Customer(k))),
+              print(list1),
               productList.value = map.keys.toList(),
-              if (map.keys.contains("01") == true)
+              print(productList.value[0]),
+
+              if (map.keys.contains(productList.value[0].toString()) == true)
                 {
                   name01.value = "Strekkode",
-                  content01.value = map["01"]['content'],
-                  lengthBarcod.value = map["01"]['length'],
+                  content01.value =
+                      map[productList.value[0].toString()]['content'],
+                  lengthBarcod.value =
+                      map[productList.value[0].toString()]['length'],
                   product.addAll(
-                      {"name01": name01.value, "content01": content01.value})
+                      {"name01": name01.value, "content01": content01.value}),
                 },
-              if (map.keys.contains("02") == true)
-                {
-                  name01.value = "Strekkode",
-                  content01.value = map["02"]['content'],
-                  lengthBarcod.value = map["02"]['length'],
-                  product.addAll(
-                      {"name02": name01.value, "content02": content01.value})
-                },
+
               if (map.keys.contains("10") == true)
                 {
                   name10.value = map["10"]['title'],
@@ -324,4 +327,16 @@ class AppGet extends GetxController {
     nameProduct.value.text = "";
     barcodValue.value = "";
   }
+}
+
+class Customer {
+  String contant;
+  String length;
+
+  Customer(this.length, this.contant);
+
+  // @override
+  // String toString() {
+  //   return '{ ${this.length}, ${this.contant} }';
+  // }
 }
