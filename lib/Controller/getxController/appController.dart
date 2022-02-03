@@ -1,18 +1,29 @@
 import 'package:audioplayers/audio_cache.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:dinengros/Controller/api/api.dart';
+import 'package:dinengros/model/all_product_model.dart';
+import 'package:dinengros/model/order_delailt.dart';
+import 'package:dinengros/model/order_model.dart';
+import 'package:dinengros/model/product_model.dart';
+import 'package:dinengros/model/status_model.dart';
 import 'package:dinengros/view/screen/main_screen/new_order_screen.dart';
 import 'package:dinengros/view/widget/progress_dialog_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
-class AppGet extends GetxController {
+class AppController extends GetxController {
   RxMap searchList = Map().obs;
 
   Rx<TextEditingController> barCodeController = TextEditingController().obs;
   Rx<TextEditingController> barCodeInputController =
       TextEditingController().obs;
+  Rx<TextEditingController> barCodeAddProductController =
+      TextEditingController().obs;
+  Rx<TextEditingController> nameAddProductController =
+      TextEditingController().obs;
+  Rx<TextEditingController> eFTAController = TextEditingController().obs;
+  Rx<TextEditingController> tEMPERATURController = TextEditingController().obs;
   Rx<TextEditingController> stkCountController = TextEditingController().obs;
   Rx<TextEditingController> kelloController = TextEditingController().obs;
   Rx<TextEditingController> newOrderController = TextEditingController().obs;
@@ -22,16 +33,27 @@ class AppGet extends GetxController {
   Rx<TextEditingController> searchCodeController = TextEditingController().obs;
   Rx<TextEditingController> nameProduct = TextEditingController().obs;
   Rx<TextEditingController> quantityController = TextEditingController().obs;
+  Rx<TextEditingController> batchNew = TextEditingController().obs;
 
   Rx<TextEditingController> customerPriceController =
       TextEditingController().obs;
+
   Rx<TextEditingController> searchAlertController = TextEditingController().obs;
   RxString token = "".obs;
   var pr = ProgressDialogUtils.createProgressDialog(Get.context);
   RxString groupApi = "".obs;
+  RxString text = ''.obs;
+  RxString type = ''.obs;
+  RxBool chackello = false.obs;
+  RxString kelloId = "".obs;
+  RxInt typeId = 2.obs;
   RxString barcodValue = "".obs;
   RxString barCode = "".obs;
   RxString name01 = "".obs;
+  RxInt foundProduct = 0.obs;
+  RxString productName = "".obs;
+  RxString name = "".obs;
+  RxString content = "".obs;
   RxString content01 = "".obs;
   RxString groupId = ''.obs;
   RxInt lengthBarcod = 0.obs;
@@ -48,10 +70,13 @@ class AppGet extends GetxController {
   RxInt qtyindex = 0.obs;
   RxString name10 = "".obs;
   RxString content10 = "".obs;
+  RxString name20 = "".obs;
+  RxString content20 = "".obs;
   RxString name310 = "".obs;
   RxBool lodaing = false.obs;
   RxBool tokenBool = false.obs;
   RxString content310 = "".obs;
+  RxString content10New = "".obs;
   RxList<double> kello = List<double>().obs;
   RxList<String> exdate = List<String>().obs;
   RxList<String> batchNum = List<String>().obs;
@@ -62,22 +87,30 @@ class AppGet extends GetxController {
   RxMap checkProducts = Map().obs;
   RxList listUnit = List().obs;
   RxList listUser = List().obs;
-  RxList listProduct = List().obs;
+  Rx<StatusModel> statusModel = StatusModel().obs;
+  Rx<ProductDataModel> productModel = ProductDataModel().obs;
   RxList<ProductModel> listAddProduct = List<ProductModel>().obs;
   RxList<ProductModel> listInScreen = List<ProductModel>().obs;
   RxList<WhereHouseModel> whereHousScreen = List<WhereHouseModel>().obs;
-  RxList listOrders = List().obs;
-  RxList listDetailsOrders = List().obs;
+  // RxList listOrders = List().obs;
+  Rx<OrderDetailsModel> listDetailsOrders = OrderDetailsModel().obs;
+  Rx<OrderDetailsModel> listDetailsOrders2 = OrderDetailsModel().obs;
+  Rx<OrderModel> orderModel = OrderModel().obs;
   RxList subDetails = List().obs;
+
+  Rx<TextEditingController> batheController = TextEditingController().obs;
+  Rx<TextEditingController> expDateController = TextEditingController().obs;
   RxList subDetailsOut = List().obs;
-  RxList productList = List().obs;
   RxList oList = List().obs;
   RxInt currentSelectedTab = 0.obs;
-  List<Customer> list1 = [];
+  // List<Customer> list1 = [];
+  Rx<AllProductModel> allProduct = AllProductModel().obs;
+  RxList productList = List().obs;
+  // Rx<SingingCharacter> _character =;
 
   Map map = {}.obs;
   RxMap mapVersion = Map().obs;
-  RxMap mapStatus = Map().obs;
+  // RxMap mapStatus = Map().obs;
   RxBool stop = false.obs;
   final FocusNode detailFocus = FocusNode();
   final FocusNode userOrderFocus = FocusNode();
@@ -96,6 +129,16 @@ class AppGet extends GetxController {
     }
   }
 
+  fetchApi() async {
+    ApiServer.instance.getOrders();
+    ApiServer.instance.getAllProduct();
+    ApiServer.instance.getUnits();
+    ApiServer.instance.getCheckProducts();
+    ApiServer.instance.getAllUser();
+    ApiServer.instance.getScanStatus();
+    ApiServer.instance.getShowVersion();
+  }
+
   void stopAlert() {
     // if (stop) {
     audioPlayer.value.stop();
@@ -112,45 +155,73 @@ class AppGet extends GetxController {
     qtyindex = qtyindex + 1;
   }
 
-  String name;
-  getPostApi(String code) async {
-    groupApi.value = "";
-    SystemChannels.textInput.invokeMethod('TextInput.hide');
+  outputOrder(orderDetails, String kello, int idStatus, int idOrder) async {
+    await ApiServer.instance.getUpdateProductBarcode(orderDetails.id);
+    await ApiServer.instance.outputOrder(
+        orderDetailId: orderDetails.id,
+        orderId: idOrder,
+        productId: orderDetails.productId,
+        unitId: orderDetails.unitId,
+        barcode: content01.value ?? "",
+        pdate: content13.value,
+        barcodeAfter: barCodeController.value.text ?? "",
+        exdate: content17.value,
+        batchNum: content10.value,
+        productName: orderDetails.productName,
+        qty: orderDetails.qty,
+        moveType: "output",
+        scanStatus: idStatus,
+        kilo: kello ?? "",
+        stkcount: content37.value ?? "");
+    await ApiServer.instance.getUpdateScanStatus(orderDetails.id, idStatus);
 
+    barCodeController.value.text = "";
+
+    ApiServer.instance.getDetailsOrders(idOrder);
+    detailFocus.requestFocus();
+
+    Future.delayed(Duration(milliseconds: 1)).then(
+        (value) => SystemChannels.textInput.invokeMethod('TextInput.hide'));
+    Get.back();
+  }
+
+  // String name;
+  getPostApi(String code) async {
+    print(code);
+    clear();
     await ApiServer.instance.getReaderBarcode(code).then((value) => {
+          // print(value);
           if (value['type'] == "A")
             {
               content01.value = value['value'],
               name01.value = "Strekkode",
               groupApi.value = value['type'],
+              productName.value = value['product_name'],
+              foundProduct.value = value['found_product'],
               lengthBarcod.value = content01.value.length,
             },
           if (value['list'] != null)
             {
               map = value['list'],
-              print(map),
-              // map.forEach((k, v) => list1.add(Customer(k))),
-              print(list1),
-              productList.value = map.keys.toList(),
-              print(productList.value[0]),
-
-              if (map.keys.contains(productList.value[0].toString()) == true)
+              productList.assignAll(map.keys.toList()),
+              if (map.keys.contains(productList[0].toString()) == true)
                 {
-                  name01.value = "Strekkode",
-                  content01.value =
-                      map[productList.value[0].toString()]['content'],
-                  lengthBarcod.value =
-                      map[productList.value[0].toString()]['length'],
+                  name01.value = map[productList[0].toString()]['title'],
+                  content01.value = map[productList[0].toString()]['content'],
+                  lengthBarcod.value = map[productList[0].toString()]['length'],
+                  productName.value =
+                      map[productList[0].toString()]['product_name'],
+                  foundProduct.value =
+                      map[productList[0].toString()]['found_product'],
                   product.addAll(
                       {"name01": name01.value, "content01": content01.value}),
                 },
-
               if (map.keys.contains("10") == true)
                 {
                   name10.value = map["10"]['title'],
                   content10.value = map["10"]['content'],
                   product.addAll(
-                      {"name10": name10.value, "content10": content10.value})
+                      {"name10": name10.value, "content10": content10.value}),
                 },
               if (map.keys.contains("17") == true)
                 {
@@ -158,8 +229,8 @@ class AppGet extends GetxController {
                   content17.value = map["17"]['content']["date"],
                   product.addAll({
                     "name17": name17.value,
-                    "content17": content17.value.substring(0, 10)
-                  })
+                    "content17": content17.value.substring(0, 10),
+                  }),
                 },
               if (map.keys.contains("15") == true)
                 {
@@ -168,7 +239,7 @@ class AppGet extends GetxController {
                   product.addAll({
                     "name15": name15.value,
                     "content15": content17.value.substring(0, 10)
-                  })
+                  }),
                 },
               if (map.keys.contains("12") == true)
                 {
@@ -177,7 +248,7 @@ class AppGet extends GetxController {
                   product.addAll({
                     "name12": name13.value,
                     "content12": content13.value.substring(0, 10)
-                  })
+                  }),
                 },
               if (map.keys.contains("11") == true)
                 {
@@ -186,7 +257,7 @@ class AppGet extends GetxController {
                   product.addAll({
                     "name11": name13.value,
                     "content11": content13.value.substring(0, 10)
-                  })
+                  }),
                 },
               if (map.keys.contains("310") == true)
                 {
@@ -197,24 +268,24 @@ class AppGet extends GetxController {
                     "content310": content310.value.toString()
                   }),
                 },
-              if (map.keys.contains("21") == true)
+              if (map.keys.contains("20") == true)
                 {
-                  name10.value = map["21"]['title'],
-                  content10.value = map["21"]['content'],
+                  name20.value = map["20"]['title'],
+                  content20.value = map["20"]['content'],
                   product.addAll(
-                      {"name21": name10.value, "content21": content10.value}),
+                      {"name20": name20.value, "content20": content20.value}),
                 },
               if (map.keys.contains("37") == true)
                 {
                   name37.value = map["37"]['title'],
-                  content37.value = map["37"]['length'].toString(),
+                  content37.value = map["37"]['content'].toString(),
                   product.addAll(
                       {"name37": name37.value, "content37": content37.value}),
                 },
               if (map.keys.contains("21") == true)
                 {
                   name21.value = map["21"]['title'],
-                  content21.value = map["21"]['length'].toString(),
+                  content21.value = map["21"]['content'].toString(),
                   product.addAll(
                       {"name21": name21.value, "content21": content21.value}),
                 },
@@ -231,75 +302,51 @@ class AppGet extends GetxController {
         });
   }
 
-  save(int qty, String barcode, int idOrderDetail, int orderId,
-      int selectedProductID, int unitId, String name) async {
-    await ApiServer.instance
-        .getSaveOrder(
-            orderDetailId: idOrderDetail,
-            orderId: orderId,
-            productId: selectedProductID,
-            unitId: unitId,
-            barcode: content01.value,
-            pdate: content13.value,
-            barcodeAfter: barcode,
-            exdate: content17.value,
-            batchNum: content10.value,
-            productName: name,
-            qty: qty,
-            moveType: "output",
-            kilo: content310.value.toString(),
-            stkcount: stkCountController.value.text)
-        .then(
-            (value) => SystemChannels.textInput.invokeMethod('TextInput.hide'));
+  // outputOrder(
+  //     int qty,
+  //     String barcode,
+  //     int idOrderDetail,
+  //     int orderId,
+  //     int selectedProductID,
+  //     int unitId,
+  //     String name,
+  //     String kilo,
+  //     // int idStuts
+  //     ) async {
 
-    //     .then((value) {
-    //   SystemChannels.textInput.invokeMethod('TextInput.hide');
-
-    //   // OverlayScreen().pop();
-    //   // scrollController
-    //   //     .animateTo(0.0,
-    //   //         duration: Duration(milliseconds: 200), curve: Curves.easeIn)
-    //   //     .whenComplete(() {
-    //   //   FocusScope.of(Get.context).requestFocus(appGet.barCodeFocus);
-    //   // });
-    // });
-  }
-
-  AppGet() {
-    // Future.delayed(Duration(seconds: 1)).then((value) async{
-
-    barCodeController.value.addListener(() async {
-      if (barCodeController.value.text.isEmpty) {
-        FocusScope.of(Get.context).unfocus();
-      } else {
-        // SystemChannels.textInput.invokeMethod('TextInput.hide');
-        // FocusScope.of(Get.context).unfocus();
-      }
-    });
-    kelloController.value.addListener(() async {
-      if (kelloController.value.text.isEmpty) {
-        FocusScope.of(Get.context).unfocus();
-      } else {
-        FocusScope.of(Get.context).unfocus();
-        // getOrders();
-      }
-    });
-    // });
-  }
+  //   await ApiServer.instance
+  //       .outputOrder(
+  //           orderDetailId: idOrderDetail,
+  //           orderId: orderId,
+  //           productId: selectedProductID,
+  //           unitId: unitId,
+  //           barcode: content01.value,
+  //           pdate: content13.value,
+  //           barcodeAfter: barcode,
+  //           exdate: content17.value,
+  //           batchNum: content10.value,
+  //           productName: name,
+  //           qty: qty,
+  //           // moveType:moveType,
+  //           kilo: kilo == "" ? content310.value.toString() : kilo,
+  //           stkcount: stkCountController.value.text)
+  //       .then(
+  //           (value) => SystemChannels.textInput.invokeMethod('TextInput.hide'));
+  // }
 
   List ll;
   List getList(int i) {
     switch (i) {
       case 2:
-        ll = listOrders.where((e) => e['status_id'] == 2).toList();
+        ll = orderModel.value.data.where((e) => e.statusId == 2).toList();
 
         break;
       case 4:
-        ll = listOrders.where((e) => e['status_id'] == 2).toList();
+        ll = orderModel.value.data.where((e) => e.statusId == 2).toList();
 
         break;
       case 6:
-        ll = listOrders.where((e) => e['status_id'] == 2).toList();
+        ll = orderModel.value.data.where((e) => e.statusId == 2).toList();
 
         break;
       default:
@@ -308,8 +355,8 @@ class AppGet extends GetxController {
   }
 
   void clear() {
-    barCodeController.value.text = "";
-    stkCountController.value.text = "";
+    // barCodeController.value.text = "";
+    // stkCountController.value.text = "";
     product.clear();
     productList.clear();
     content01.value = "";
@@ -327,16 +374,4 @@ class AppGet extends GetxController {
     nameProduct.value.text = "";
     barcodValue.value = "";
   }
-}
-
-class Customer {
-  String contant;
-  String length;
-
-  Customer(this.length, this.contant);
-
-  // @override
-  // String toString() {
-  //   return '{ ${this.length}, ${this.contant} }';
-  // }
 }

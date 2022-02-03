@@ -1,26 +1,26 @@
 import 'dart:io';
 
-import 'package:dinengros/Controller/getxController/getx.dart';
 
 import 'package:dinengros/view/screen/splash.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import 'Controller/helper/notification_helper.dart';
 import 'Controller/helper/sp_helper.dart';
+import 'controller/getxController/appController.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  Get.lazyPut(() => AppGet());
+
+            Get.put(AppController());
+
+  //  await Firebase.initializeApp();
+  // await NotificationHelper().initialNotification();
 
   await SPHelper.spHelper.initSharedPrefrences();
 
-  await Firebase.initializeApp();
-  await NotificationHelper().initialNotification();
-  SystemChannels.textInput.invokeMethod('TextInput.hide');
+ 
 
   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
@@ -49,6 +49,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   @override
   void initState() {
+
     super.initState();
   }
 
@@ -57,6 +58,7 @@ class _MyAppState extends State<MyApp> {
       designSize: Size(255, 425),
       allowFontScaling: true,
       builder: () {
+
         return GetMaterialApp(
             debugShowCheckedModeBanner: false,
             // builder: DevicePrevie w.appBuilder,

@@ -1,4 +1,5 @@
 import 'package:dinengros/Controller/api/api.dart';
+import 'package:dinengros/controller/getxController/appController.dart';
 import 'package:dinengros/value/colors.dart';
 import 'package:dinengros/value/const.dart';
 import 'package:dinengros/view/widget/background.dart';
@@ -7,7 +8,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import '../../../Controller/getxController/getx.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -16,7 +16,7 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _DetailsOrdersListState extends State<SearchScreen> {
-  AppGet appGet = Get.find();
+  AppController appGet = Get.find();
   int qty;
   int index;
   int selectedProductID;
@@ -253,47 +253,68 @@ class _DetailsOrdersListState extends State<SearchScreen> {
                     )
                   : appGet.productList.isEmpty || appGet.productList.length == 0
                       ? Container()
-                      : Container(
-                          height: 90,
-                          child: ListView.builder(
-                              padding: EdgeInsets.only(bottom: 10),
-                              itemCount: appGet.productList.length,
-                              itemBuilder: (context, index) {
-                                return Padding(
-                                  padding: const EdgeInsets.only(bottom: 5),
-                                  child: Row(
-                                    children: [
-                                      SizedBox(
-                                        width: 8,
+                      : Column(
+                          children: [
+                            Row(
+                              children: [
+                                Text(appGet.product["name01"],
+                                    style: TextStyle(
+                                        color: Colors.black, fontSize: 12)),
+                                SizedBox(
+                                  width: 4,
+                                ),
+                                Text(appGet.product["content01"].toString(),
+                                    style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.black,
+                                        fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                            Container(
+                              height: 90,
+                              child: ListView.builder(
+                                  padding: EdgeInsets.only(bottom: 10),
+                                  itemCount: appGet.productList.length - 1,
+                                  itemBuilder: (context, index) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(bottom: 5),
+                                      child: Row(
+                                        children: [
+                                          SizedBox(
+                                            width: 8,
+                                          ),
+                                          Text(
+                                            appGet.product["name" +
+                                                        appGet.productList[
+                                                            index + 1]]
+                                                    .toString() +
+                                                " : ",
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFF414040),
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            width: 8,
+                                          ),
+                                          Text(
+                                            appGet.product["content" +
+                                                    appGet
+                                                        .productList[index + 1]]
+                                                .toString(),
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFF414040),
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                      Text(
-                                        appGet.product["name" +
-                                                    appGet.productList[index]]
-                                                .toString() +
-                                            " : ",
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF414040),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        width: 8,
-                                      ),
-                                      Text(
-                                        appGet.product["content" +
-                                                appGet.productList[index]]
-                                            .toString(),
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF414040),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              }),
+                                    );
+                                  }),
+                            ),
+                          ],
                         ),
               SizedBox(
                 height: 4,

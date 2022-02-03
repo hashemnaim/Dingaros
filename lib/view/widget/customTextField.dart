@@ -71,14 +71,15 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
     return TextFormField(
       focusNode: focusNode,
       style: TextStyle(
-          color: AppColors.primary,
-          fontSize: 16.sp,
+          color: AppColors.primary2,
+          fontSize: 14.sp,
           fontFamily: "NunitoSans",
           fontWeight: FontWeight.w400),
       initialValue: widget.textInitialValue,
       controller: widget.textEditingController,
       autofocus: widget.autofocus,
-      // maxLines: widget.maxLine,
+      minLines: 1,
+      maxLines: null,
       textAlign: widget.textAlign ?? TextAlign.start,
       validator: (value) => widget.validator(value),
       onSaved: (newValue) => widget.onSaved(newValue),

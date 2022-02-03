@@ -1,5 +1,5 @@
 import 'package:dinengros/Controller/api/api.dart';
-import 'package:dinengros/Controller/getxController/getx.dart';
+import 'package:dinengros/controller/getxController/appController.dart';
 import 'package:dinengros/value/animate_do.dart';
 import 'package:dinengros/value/colors.dart';
 import 'package:dinengros/value/const.dart';
@@ -20,7 +20,7 @@ class NewOrderScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<NewOrderScreen> {
-  AppGet appGet = Get.find();
+  AppController appGet = Get.find();
   GlobalKey<FormState> keyAdd = GlobalKey<FormState>();
   AnimationController animationController;
   bool visable = true;

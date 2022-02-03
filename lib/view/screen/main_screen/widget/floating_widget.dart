@@ -1,6 +1,7 @@
 import 'package:dinengros/Controller/api/api.dart';
-import 'package:dinengros/Controller/getxController/getx.dart';
+import 'package:dinengros/controller/getxController/appController.dart';
 import 'package:dinengros/value/colors.dart';
+import 'package:dinengros/view/widget/isload.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -12,14 +13,14 @@ class FloatingCustom extends StatefulWidget {
 }
 
 class _FloatingCustomState extends State<FloatingCustom> {
-  AppGet appGet = Get.find();
+  AppController appGet = Get.find();
 
   @override
   void initState() {
-    SystemChannels.textInput.invokeMethod('TextInput.hide');
     appGet.searchAlertController.value.text = '';
+    Future.delayed(Duration(milliseconds: 1)).then(
+        (value) => SystemChannels.textInput.invokeMethod('TextInput.hide'));
 
-    appGet.newOrderFocus.unfocus();
     super.initState();
   }
 
@@ -29,17 +30,35 @@ class _FloatingCustomState extends State<FloatingCustom> {
         shape: Border.all(color: Colors.transparent),
         splashColor: AppColors.primary,
         onPressed: () {
-          appGet.searchList.clear();
-          Get.dialog(AlertDialog(
-              title: Obx(
-            () => SingleChildScrollView(
-              child: Column(
+          appGet.productModel.value = null;
+          appGet.tokenBool.value = false;
+
+          Get.dialog(StatefulBuilder(
+            builder: (context, setState) => AlertDialog(
+                title: Obx(
+              () => Column(
                 children: [
                   TextFormField(
                     controller: appGet.searchAlertController.value,
-                    autofocus: kReleaseMode,
+                    autofocus: true,
                     focusNode: appGet.searchAlertFocus,
                     keyboardType: TextInputType.text,
+                    onFieldSubmitted: (v) async {
+                      await Future.delayed(Duration(milliseconds: 300));
+                      await appGet
+                          .getPostApi(appGet.searchAlertController.value.text);
+                      print("/////////////");
+                      print(appGet.content01.value);
+                      await ApiServer.instance
+                          .getSearchProduct(appGet.content01.value);
+                      // appGet.searchAlertController.value.text = '';
+                      // setState(() {});
+                      // appGet.searchAlertFocus.unfocus();
+
+                      Future.delayed(Duration(milliseconds: 10)).then((value) =>
+                          SystemChannels.textInput
+                              .invokeMethod('TextInput.hide'));
+                    },
                     decoration: InputDecoration(
                       hintText: "Strekkode",
                       prefixIcon: Icon(
@@ -57,14 +76,16 @@ class _FloatingCustomState extends State<FloatingCustom> {
                       suffixIcon: IconButton(
                         icon: Icon(Icons.close),
                         onPressed: () {
-                          appGet.searchList.clear();
+                          appGet.productModel.value = null;
                           appGet.searchAlertController.value.text = '';
-                          setState(() {});
+                          Future.delayed(Duration(milliseconds: 1)).then(
+                              (value) => SystemChannels.textInput
+                                  .invokeMethod('TextInput.hide'));
                         },
                       ),
                     ),
                   ),
-                  appGet.searchList.isEmpty || appGet.searchList["name"] == null
+                  appGet.productModel.value == null
                       ? Container()
                       : Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -73,37 +94,50 @@ class _FloatingCustomState extends State<FloatingCustom> {
                               height: 10,
                             ),
                             Text(
-                              appGet.searchList["name"] ?? "",
+                              appGet.productModel.value.name ?? "",
                               style: TextStyle(fontSize: 14),
                             ),
                             SizedBox(
                               height: 10,
                             ),
-                            appGet.searchList["prices"].length == 0 ||
-                                    appGet.searchList["prices"] == null
+                            appGet.productModel.value.prices == null
                                 ? Container()
-                                : Container(
-                                    height: double.parse((20 *
-                                            appGet.searchList["prices"].length)
-                                        .toString()),
-                                    width: 300,
-                                    // appGet.searchList["prices"].length,
-                                    child: ListView.builder(
-                                      itemCount:
-                                          appGet.searchList["prices"].length,
-                                      itemBuilder: (context, index) => Text(
-                                        "Pris : " +
-                                                appGet.searchList["prices"]
-                                                        [index]["price"]
-                                                    .toString() +
-                                                " " +
-                                                appGet.searchList["prices"]
-                                                    [index]["unit"] ??
-                                            "",
-                                        style: TextStyle(fontSize: 14),
+                                : appGet.productModel.value.prices.list
+                                            .length ==
+                                        0
+                                    ? Container()
+                                    : Container(
+                                        height: double.parse((20 *
+                                                appGet.productModel.value.prices
+                                                    .list.length)
+                                            .toString()),
+                                        width: 300,
+                                        // appGet.searchList["prices"].length,
+                                        child: ListView.builder(
+                                          itemCount: appGet.productModel.value
+                                              .prices.list.length,
+                                          itemBuilder: (context, index) => Text(
+                                            "Pris : " +
+                                                    appGet
+                                                        .productModel
+                                                        .value
+                                                        .prices
+                                                        .list[index]
+                                                        .price
+                                                        .floorToDouble()
+                                                        .toString() +
+                                                    " " +
+                                                    appGet
+                                                        .productModel
+                                                        .value
+                                                        .prices
+                                                        .list[index]
+                                                        .unit ??
+                                                "",
+                                            style: TextStyle(fontSize: 14),
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                  ),
 
                             // SizedBox(
                             //   height: 10,
@@ -113,21 +147,23 @@ class _FloatingCustomState extends State<FloatingCustom> {
                   FlatButton(
                       color: AppColors.primary2,
                       onPressed: () async {
-                        print("dddd");
                         await appGet.getPostApi(
                             appGet.searchAlertController.value.text);
                         await ApiServer.instance
                             .getSearchProduct(appGet.content01.value);
                         appGet.searchAlertController.value.text = '';
                       },
-                      child: Text(
-                        "Søk",
-                        style: TextStyle(color: Colors.white, fontSize: 18),
-                      ))
+                      child: Obx(() => appGet.tokenBool.value == true
+                          ? IsLoad()
+                          : Text(
+                              "Søk",
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 18),
+                            )))
                 ],
               ),
-            ),
-          )));
+            )),
+          ));
         },
         child: CircleAvatar(
             radius: 25,
@@ -136,11 +172,6 @@ class _FloatingCustomState extends State<FloatingCustom> {
                     fontSize: 30,
                     color: Colors.white,
                     fontWeight: FontWeight.bold)),
-            //  Icon(
-            //   Icons.info_outline,
-            //   color: Colors.white,
-            //   size: 40,
-            // ),
             backgroundColor: AppColors.primary2));
   }
 }

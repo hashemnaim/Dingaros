@@ -1,5 +1,4 @@
 import 'package:dinengros/Controller/api/api.dart';
-import 'package:dinengros/view/screen/main_screen/home_screen.dart';
 import 'package:dinengros/view/widget/background.dart';
 import 'package:dinengros/view/widget/customTextField.dart';
 import 'package:dinengros/view/widget/custom_button.dart';
@@ -57,10 +56,9 @@ class SignInScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        resizeToAvoidBottomInset: false,
-        body: Background(
+    return  Background(
           logo: true,
+          
           contant: Form(
             key: signKey,
             child: Padding(
@@ -116,6 +114,6 @@ class SignInScreen extends StatelessWidget {
               ),
             ),
           ),
-        ));
+        );
   }
 }

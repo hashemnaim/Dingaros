@@ -1,8 +1,9 @@
-import 'package:dinengros/Controller/getxController/getx.dart';
 import 'package:dinengros/Controller/helper/sp_helper.dart';
+import 'package:dinengros/controller/getxController/appController.dart';
 import 'package:dinengros/value/colors.dart';
 import 'package:dinengros/view/screen/main_screen/widget/floating_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -12,15 +13,18 @@ import 'custom_text.dart';
 
 class Background extends StatefulWidget {
   final Widget contant;
-  final bool logo, back, notfi, user;
+  final Widget botton;
+  final bool logo, back, notfi, user, bottonbool;
 
   Background({
     Key key,
     this.contant,
+    this.botton,
     this.logo = false,
     this.back = false,
     this.notfi = false,
     this.user = false,
+    this.bottonbool = false,
   }) : super(key: key);
 
   @override
@@ -28,7 +32,7 @@ class Background extends StatefulWidget {
 }
 
 class _BackgroundState extends State<Background> {
-  AppGet appGet = Get.find();
+  AppController appGet = Get.find();
   List listUser;
   @override
   void initState() {
@@ -38,128 +42,87 @@ class _BackgroundState extends State<Background> {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() {
-      print(appGet.stop.value);
-      return Stack(
-        fit: StackFit.expand,
-        children: [
-          Positioned(
-            left: 0,
-            right: 0,
-            child: CustomPngImage(
-              imageName: "bg",
-              fit: BoxFit.fill,
-              height: Get.height,
-              width: Get.width,
-            ),
-          ),
-
-          widget.logo == false
-              ? Container()
-              : Positioned(
-                  // left: 0,
-                  right: 10.w,
-                  bottom: 4.h,
-                  child: Column(
-                    children: [
-                      CustomText(
-                        "Powered by",
-                        fontSize: 12.sp,
-                      ),
-                      SizedBox(height: 4.h),
-                      CustomSvgImage(
-                        imageName: "logo",
-                        fit: BoxFit.contain,
-                        height: 20.h,
-                        width: 50.w,
-                      ),
-                      SizedBox(height: 4.h),
-                    ],
+    return Scaffold(
+        resizeToAvoidBottomInset: false,
+        resizeToAvoidBottomPadding: false,
+        body: Container(
+          decoration: BoxDecoration(
+              image: DecorationImage(
+                  image: ExactAssetImage(
+                    "assets/images/bg.png",
                   ),
-                ),
-          widget.notfi == false
-              ? Container()
-              : Obx(() {
-                  print(appGet.stop.value);
-                  return Positioned(
-                    right: 10.w,
-                    top: 45.h,
-                    child: GestureDetector(
-                      onTap: () {
-                        // appGet.stop.value = !appGet.stop.value;
+                  fit: BoxFit.fill)),
+          child: Column(
+            // fit: StackFit.expand,
+            children: [
+              CustomSvgImage(
+                imageName: "header",
+                fit: BoxFit.fill,
+                height: 45.h,
+                width: Get.width,
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    widget.back == false
+                        ? Container()
+                        : GestureDetector(
+                            onTap: () {
+                              appGet.detailFocus.requestFocus();
 
-                        appGet.stopAlert();
-                        // setState(() {});
-                      },
-                      child: CustomSvgImage(
-                        imageName:
-                            appGet.stop.value == false ? "notfi" : "notfi1",
-                        fit: BoxFit.contain,
-                        width: 30.w,
-                        height: 30.h,
-                      ),
+                              Future.delayed(Duration(milliseconds: 1)).then(
+                                  (value) => SystemChannels.textInput
+                                      .invokeMethod('TextInput.hide'));
+                              Get.back();
+                            },
+                            child: CustomSvgImage(
+                              imageName: "back",
+                              fit: BoxFit.contain,
+                              width: 25.w,
+                              height: 25.h,
+                            ),
+                          ),
+                    Column(
+                      children: [
+                        CustomPngImage(
+                          imageName: "mini_logo",
+                          fit: BoxFit.fill,
+                          width: 80.w,
+                          height: 30.h,
+                        ),
+                        CustomText(
+                          SPHelper.spHelper.getText("name"),
+                          color: AppColors.primary2,
+                          fontSize: 18,
+                        ),
+                      ],
                     ),
-                  );
-                }),
-
-          // ),
-          widget.back == false
-              ? Container()
-              : Positioned(
-                  left: 10.w,
-                  top: 45.h,
-                  child: GestureDetector(
-                    onTap: () {
-                      Get.back();
-                    },
-                    child: CustomSvgImage(
-                      imageName: "back",
-                      fit: BoxFit.contain,
-                      width: 30.w,
-                      height: 30.h,
-                    ),
-                  ),
+                    widget.notfi == false
+                        ? Container()
+                        : Obx(() {
+                            print(appGet.stop.value);
+                            return GestureDetector(
+                              onTap: () {
+                                appGet.stopAlert();
+                              },
+                              child: CustomSvgImage(
+                                imageName: appGet.stop.value == false
+                                    ? "notfi"
+                                    : "notfi1",
+                                fit: BoxFit.contain,
+                                width: 25.w,
+                                height: 25.h,
+                              ),
+                            );
+                          }),
+                  ],
                 ),
-          Positioned(
-            left: 0,
-            right: 0,
-            child: CustomSvgImage(
-              imageName: "header",
-              fit: BoxFit.fill,
-              height: 45.h,
-              width: Get.width,
-            ),
-          ),
-          Positioned(
-            left: 0,
-            right: 0,
-            top: 16.h,
-            child: CustomPngImage(
-              imageName: "mini_logo",
-              fit: BoxFit.contain,
-              width: 40.w,
-              height: 30.h,
-            ),
-          ),
-          widget.notfi == false
-              ? Container()
-              : Positioned(
-                  left: 108.w,
-                  top: 40.h,
-                  child: CustomText(
-                    SPHelper.spHelper.getText("name"),
-                    color: AppColors.primary2,
-                    fontSize: 22,
-                  ),
-                ),
-
-          widget.user == false
-              ? Container()
-              : Positioned(
-                  left: 0,
-                  right: 0,
-                  top: 80.h,
-                  child: Padding(
+              ),
+              widget.user == false
+                  ? Container()
+                  : Padding(
                       padding: EdgeInsets.symmetric(horizontal: 6.w),
                       child: TypeAheadField(
                           suggestionsBoxVerticalOffset: 2,
@@ -244,19 +207,41 @@ class _BackgroundState extends State<Background> {
 
                             // setState(() {});
                           })),
-                ),
-
-          Positioned(
-              left: 0,
-              right: 0,
-              top: widget.user == false ? 65.h : 124.h,
-              child: widget.contant),
-
-          widget.logo != false
-              ? Container()
-              : Positioned(right: 0, bottom: 10.h, child: FloatingCustom()),
-        ],
-      );
-    });
+              Expanded(child: widget.contant),
+            ],
+          ),
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+        floatingActionButton: widget.logo == true
+            ? Column(
+                children: [
+                  CustomText(
+                    "Powered by",
+                    fontSize: 12.sp,
+                  ),
+                  SizedBox(height: 4.h),
+                  CustomSvgImage(
+                    imageName: "logo",
+                    fit: BoxFit.contain,
+                    height: 20.h,
+                    width: 50.w,
+                  ),
+                  SizedBox(height: 4.h),
+                ],
+              )
+            : widget.bottonbool == true
+                ? Container()
+                : widget.botton == null
+                    ? FloatingCustom()
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          widget.botton,
+                          SizedBox(
+                            width: Get.width / 10,
+                          ),
+                          FloatingCustom(),
+                        ],
+                      ));
   }
 }

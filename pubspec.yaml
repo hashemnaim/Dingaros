@@ -1,6 +1,6 @@
 name: dinengros
 
-version: 1.0.1
+version: 1.4.1
 
 environment:
   sdk: ">=2.7.0 <3.0.0"
@@ -17,7 +17,6 @@ dependencies:
   flutter_spinkit: ^4.1.2+1
   firebase_messaging: ^7.0.3
   firebase_core: ^0.5.3
-  flutter_local_notifications: ^4.0.1
   search_choices: ^1.0.17
   dropdown_search: ^0.4.9
   fluttertoast: ^7.1.6
